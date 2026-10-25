@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Interleaf 中英對照",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Interleave each paragraph of a web page with its Traditional Chinese translation.",
   "minimum_chrome_version": "111",
   "icons": {
