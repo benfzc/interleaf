@@ -15,7 +15,7 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 const ROOT = new URL("../../", import.meta.url).pathname;
 const PAGE_URL = "https://interleaf.test/";
 const GTX = "https://translate.googleapis.com/**";
-const FILES = ["manifest.json", "background.js", "content.js", "content.css", "lib", "vendor"];
+const FILES = ["manifest.json", "background.js", "content.js", "content.css", "icons", "lib", "vendor"];
 
 const PAGE = `<!doctype html><meta charset="utf-8">
 <h1>Getting started</h1>
