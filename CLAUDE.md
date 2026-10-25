@@ -55,3 +55,10 @@ Chrome / Edge browser extension：把非中文網頁轉成「一段原文、一�
   - Content script 只處理 DOM：擷取段落、依元素跳過程式碼（`<code>`、`<pre>` 等）、插入譯文。
   - Service worker 處理文字與網路：依文字內容跳過、cache、rate limit、呼叫 gtx、轉繁體。
   - Service worker 的邏輯不碰 DOM，可以直接用 Node 跑 unit test。
+
+## 開發與測試
+
+- `npm test`：unit test，只需要 Node。`npm run e2e`：用 Playwright 載入 unpacked extension。
+- 雲端容器已經有 Chromium 與 Playwright，不要執行 `playwright install` 或 `npm install`。
+- 雲端 IP 會被 Google 封鎖，測試一律用 `test/fixtures/` 的真實回應或攔截請求，真正連線只在使用者的網路測。
+- 發布：改 `manifest.json` 的 `version`，CI 在該版本沒有 Release 時建立 Release（雲端 session 不能 push tag）。

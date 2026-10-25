@@ -1,0 +1,14 @@
+/* Translation appended inside its paragraph; inherits weight and size so
+   headings stay headings. Every translation looks the same on a page. */
+.il-tr {
+  display: block;
+  margin-top: 0.25em;
+  padding-left: 0.5em;
+  border-left: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  /* Chinese below 13px is hard to read */
+  font-size: max(1em, 13px);
+  font-style: normal;
+  text-align: start;
+  white-space: normal;
+}

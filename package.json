@@ -1,0 +1,12 @@
+{
+  "name": "interleaf",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"test/unit/*.test.js\"",
+    "e2e": "node --test \"test/e2e/*.test.js\""
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

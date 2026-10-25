@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Interleaf 中英對照",
+  "version": "0.1.0",
+  "description": "Interleave each paragraph of a web page with its Traditional Chinese translation.",
+  "minimum_chrome_version": "111",
+  "action": {
+    "default_title": "中英對照：按一下翻譯此頁"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://translate.googleapis.com/*"]
+}

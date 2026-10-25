@@ -1,0 +1,105 @@
+# Unit tests, Playwright E2E with the unpacked extension, and a zip of the
+# extension. Publishes a GitHub Release when manifest.json has a new version.
+name: ci
+on:
+  push:
+    branches: ["claude/**", "main"]
+    paths-ignore: ["docs/**", "**.md"]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  # a newer push to the same branch supersedes the running build
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: Test and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.zip.outputs.version }}
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Unit tests
+        run: npm test
+
+      - name: E2E tests
+        run: npm run e2e
+
+      - name: Package extension
+        id: zip
+        run: |
+          ver=$(jq -r .version manifest.json)
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          zip -r "interleaf-$ver.zip" manifest.json background.js content.js content.css lib vendor
+
+      - name: Upload extension zip
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: interleaf-${{ github.sha }}
+          path: interleaf-*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  # Publishes the zip as a public GitHub Release (no login needed to
+  # download) when the manifest version has no release yet. The release
+  # creates its tag on this commit, since cloud sessions cannot push tags.
+  release:
+    name: Publish GitHub Release
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out release notes
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          sparse-checkout: .github/release-notes.md
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Check whether the release exists
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ needs.test.outputs.version }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download extension zip
+        if: steps.release.outputs.new == 'true'
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: interleaf-${{ github.sha }}
+
+      - name: Create release
+        if: steps.release.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ needs.test.outputs.version }}
+        run: |
+          gh release create "v$VER" "interleaf-$VER.zip" --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Interleaf 中英對照 $VER" \
+            --notes-file .github/release-notes.md
